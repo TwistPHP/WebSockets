@@ -1,5 +1,5 @@
 # TwistPHP Package - WebSockets
-Bring you website or project to life with real time bespoke interactivity.
+Bring you website or project to life with real time bespoke interactivity, for use within the [TwistPHP MVC framework](https://twistphp.com).
 
 ## Getting Started
 To get started using the TwistPHP WebSockets package it will need to be installed into your copy of the TwistPHP framework. To do this you can either search for "WebSockets" on the packages page of your framework manager and click install or download and manually install the package.
@@ -8,7 +8,7 @@ To get started using the TwistPHP WebSockets package it will need to be installe
     * WS_HOST - IP address or domain name that the socket server will listen on
     * WS_PORT - Port that the socket server will listen on
 * Start the socket server, you will need to setup a cron/scheduled task to manage the server. The task should run once an minute, if the server is already running nothing more will be done.
-    `* * * * * php -q /packages/WebSockets/cronjobs/server.php`
+    * `* * * * * php -q /packages/WebSockets/cronjobs/server.php`
 * Once started you can manage and view the stats of your socket server in the manager, a new item "WebSockets" should have appeared in the menu.
 
 ## Setting up a Socket Client

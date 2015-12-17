@@ -110,8 +110,8 @@
 	        if($arrUserData['status']){
 
 		        if(Sockets::create($resSocket)){
-			        Sockets::setData($resSocket,'user_id',$arrUserData['data']['id']);
 
+			        Sockets::setData($resSocket,'user_id',$arrUserData['data']['id']);
 			        $intUserID = self::createUser($arrUserData['data']);
 
 			        //Now send through the valid login details to the user when they login
@@ -127,7 +127,6 @@
 		        }
 
 		        Sockets::writeJSON($resSocket,$arrResponse);
-
 	        }else{
 
 	            //Failed to login, tell the user and destroy the connection
@@ -164,10 +163,12 @@
 		    if($strUID != 'guest' && !strstr($strUID,'@')){
 
 			    //If the UID dosnt contain an @ symbol treat it as a session Key of a logged in user
-			    $intUserID = Auth::SessionHandler()->validateCode($strUID);
+			    $intUserID = Auth::SessionHandler()->validateCode($strUID,false);
 
 			    if(!is_null($intUserID) && $intUserID > 0){
-				    $arrOut['data'] = \Twist::User() -> get($intUserID);
+				    $arrOut['data'] = \Twist::User() -> getData($intUserID);
+				    $arrOut['status'] = true;
+				    $arrOut['message'] = sprintf('Connected to Twist WebSocket Server as %s %s',$arrOut['data']['firstname'],$arrOut['data']['surname']);
 			    }
 
 		    }elseif(\Twist::framework()->setting('WS_ALLOW_GUEST_LOGIN') && $strUID == 'guest' && is_null($strPassword)){

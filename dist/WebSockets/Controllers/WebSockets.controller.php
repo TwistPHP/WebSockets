@@ -284,7 +284,7 @@
 				'data' => array()
 			);
 
-			Sockets::writeJSON($arrSafariFix,$resSocket);
+			Sockets::writeJSON($resSocket,$arrSafariFix);
 
 			return true;
 		}

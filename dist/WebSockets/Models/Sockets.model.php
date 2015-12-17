@@ -41,11 +41,14 @@
 		/**
 		 * Remove and close a temp connection as it is either verified or being rejected
 		 * @param $resSocket
+		 * @param bool $blCloseSocket
 		 */
-		public static function removeTemporary($resSocket){
+		public static function removeTemporary($resSocket,$blCloseSocket = true){
 
 			//Close the socket connection
-			socket_close($resSocket);
+			if($blCloseSocket){
+				socket_close($resSocket);
+			}
 
 			unset(self::$arrTemporary[self::id($resSocket)]);
 		}
@@ -122,7 +125,7 @@
 					'data' => array()
 				);
 
-				self::removeTemporary($resSocket);
+				self::removeTemporary($resSocket,false);
 				$blConnected = true;
 			}
 
@@ -302,6 +305,7 @@
 		 * @param $mxdMessage
 		 */
 		public static function writeMessage($resSocket,$mxdMessage){
+			System::socketLog(sprintf("<-- %s",$mxdMessage));
 			$mxdWrappedMessage = DataHandler::wrap($mxdMessage,$resSocket);
 			self::writeRawBuffer($resSocket,$mxdWrappedMessage);
 		}

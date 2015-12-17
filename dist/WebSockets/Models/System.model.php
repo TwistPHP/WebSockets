@@ -215,9 +215,9 @@
 						if($arrEachConnection['data']['user_id'] == $arrEachUser['id']){
 
 							$arrConnectionData[] = array(
-								'viewStatus' => $arrEachUser['viewStatus'],
-								'activeStatus' => $arrEachUser['activeStatus'],
-								'currentURI' => $arrEachUser['currentURI'],
+								'viewStatus' => (array_key_exists('viewStatus',$arrEachConnection['data'])) ? $arrEachConnection['data']['viewStatus'] : '',
+								'activeStatus' => (array_key_exists('activeStatus',$arrEachConnection['data'])) ? $arrEachConnection['data']['activeStatus'] : '',
+								'currentURI' => (array_key_exists('currentURI',$arrEachConnection['data'])) ? $arrEachConnection['data']['currentURI'] : '',
 								'ip' => $arrEachConnection['ip'],
 								'port' => $arrEachConnection['port']
 							);

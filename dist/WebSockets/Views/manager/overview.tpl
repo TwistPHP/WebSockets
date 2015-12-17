@@ -1,4 +1,4 @@
-{resource:websockets,min}
+{resource:websockets,version=min}
 <script type="text/javascript">
     var strHost = '{data:ws_host}';
     var intPort = {data:ws_port};

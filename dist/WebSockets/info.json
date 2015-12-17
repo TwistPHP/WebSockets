@@ -1,13 +1,13 @@
 {
   "name": "WebSockets",
-  "description": "Enable a WebSocket server on your website",
-  "version": "3.0.0",
+  "description": "Bring you website or project to life with real time bespoke interactivity, for use within the TwistPHP MVC framework",
+  "version": "5.0.0",
   "author": {
     "name": "TwistPHP",
     "website": "https://twistphp.com",
     "email": "contact@twistphp.com",
-    "git": "",
-    "bugs": ""
+    "git": "https://github.com/TwistPHP/WebSockets",
+    "bugs": "https://github.com/TwistPHP/WebSockets/issues"
   },
   "thirdparty": {
     "info": "",

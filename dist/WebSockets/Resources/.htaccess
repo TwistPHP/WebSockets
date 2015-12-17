@@ -1,0 +1,27 @@
+Allow from all
+
+<ifmodule mod_expires.c>
+	<Filesmatch "\.(jpg|jpeg|png|gif|js|css|ico|svg)$">
+		ExpiresActive on
+		ExpiresDefault "access plus 30 days"
+	</FilesMatch>
+
+	<FilesMatch "\.(xml|txt)$">
+		ExpiresDefault "access plus 1 day"
+	</FilesMatch>
+
+	<FilesMatch "\.(html|htm|pdf)$">
+		ExpiresDefault "access plus 4 hours"
+	</FilesMatch>
+</ifmodule>
+
+FileETag None
+
+php_value output_handler ob_gzhandler
+
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE text/javascript
+AddOutputFilterByType DEFLATE image/jpg
+AddOutputFilterByType DEFLATE image/jpeg
+AddOutputFilterByType DEFLATE image/png

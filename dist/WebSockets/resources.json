@@ -1,0 +1,9 @@
+{
+	"websockets": {
+			"min": {
+					"default": true,
+					"css": [],
+					"js": ["js/websockets.min.js"]
+				}
+		}
+}

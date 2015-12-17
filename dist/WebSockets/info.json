@@ -1,0 +1,16 @@
+{
+  "name": "WebSockets",
+  "description": "Enable a WebSocket server on your website",
+  "version": "3.0.0",
+  "author": {
+    "name": "TwistPHP",
+    "website": "https://twistphp.com",
+    "email": "contact@twistphp.com",
+    "git": "",
+    "bugs": ""
+  },
+  "thirdparty": {
+    "info": "",
+    "website": ""
+  }
+}

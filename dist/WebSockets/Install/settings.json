@@ -1,0 +1,42 @@
+{
+  "WS_SERVER_HOST":{
+    "title":"Default Server Host",
+    "description":"Set the host name or IP address for the WS server to listen on",
+    "default":"localhost",
+    "type":"string",
+    "options":"",
+    "null":0
+  },
+  "WS_SERVER_PORT":{
+    "title":"Default Server Port",
+    "description":"Set the port number for the WS server to listen on",
+    "default":1085,
+    "type":"integer",
+    "options":"",
+    "null":0
+  },
+  "WS_ALLOW_GUEST_LOGIN":{
+    "title":"Allow guest connections",
+    "description":"Allow guest connections for users that are not registered or logged into the site",
+    "default":0,
+    "type":"boolean",
+    "options":"1,0",
+    "null":0
+  },
+  "WS_ALLOW_REMOTE_LOGIN":{
+    "title":"Allow Remote Login",
+    "description":"Allow user to login (using email and password) through the socket server as well as those that are logged in to the website already",
+    "default":0,
+    "type":"boolean",
+    "options":"1,0",
+    "null":0
+  },
+  "WS_REQUIRED_ADMIN_LEVEL":{
+    "title":"Required Admin Level",
+    "description":"User level required in order for a user to administer the socket server (Level 0 is Twist Root User)",
+    "default":0,
+    "type":"integer",
+    "options":"",
+    "null":0
+  }
+}

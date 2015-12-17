@@ -44,185 +44,226 @@
 			return $strOut;
 		}
 
+		/**
+		 * Encode data into a Frame76 encoded frame to be sent back via WebSocket communication
+		 * @param $strMessage
+		 * @return string
+		 */
 		private static function encodeFrame76($strMessage){
 			return chr(0).$strMessage.chr(255);
 		}
 
+		/**
+		 * Decode Frame76 encoded data from the WebSocket communication
+		 * @param $strMessage
+		 * @return string
+		 */
 		private static function decodeFrame76($strMessage){
 			return substr($strMessage, 1, strlen($strMessage)-2);
 		}
 
-		private static function hybi10Encode($payload, $type = 'text', $masked = true, $resUserSocket = null){
+		/**
+		 * Encode data into a hybi-10 encoded frame to be sent back via WebSocket communication
+		 * @param string $strPayload Payload to be hybi-10 encoded
+		 * @param string $strType Frame type to be encoded
+		 * @param bool $blMasked Set to true will mask the encoded data
+		 * @param null $resUserSocket Socket resource to which the hybi-10 encoded data will be sent
+		 * @return string hybi-10 encoded string
+		 */
+		private static function hybi10Encode($strPayload, $strType = 'text', $blMasked = true, $resUserSocket = null){
 
-			$frameHead = $mask = array();
-			$frame = '';
-			$payloadLength = strlen($payload);
+			$arrFrameHead = $arrMask = array();
+			$intPayloadLength = strlen($strPayload);
 
-			switch($type){
+			switch($strType){
 				case 'text':
-					// first byte indicates FIN, Text-Frame (10000001):
-					$frameHead[0] = 129;
+					//First byte indicates FIN, Text-Frame (10000001):
+					$arrFrameHead[0] = 129;
 					break;
 
 				case 'close':
-					// first byte indicates FIN, Close Frame(10001000):
-					$frameHead[0] = 136;
+					//First byte indicates FIN, Close Frame(10001000):
+					$arrFrameHead[0] = 136;
 					break;
 
 				case 'ping':
-					// first byte indicates FIN, Ping frame (10001001):
-					$frameHead[0] = 137;
+					//First byte indicates FIN, Ping frame (10001001):
+					$arrFrameHead[0] = 137;
 					break;
 
 				case 'pong':
-					// first byte indicates FIN, Pong frame (10001010):
-					$frameHead[0] = 138;
+					//First byte indicates FIN, Pong frame (10001010):
+					$arrFrameHead[0] = 138;
 					break;
 			}
 
-			// set mask and payload length (using 1, 3 or 9 bytes)
-			if($payloadLength > 65535){
-				$payloadLengthBin = str_split(sprintf('%064b', $payloadLength), 8);
-				$frameHead[1] = ($masked === true) ? 255 : 127;
+			//Set mask and payload length (using 1, 3 or 9 bytes)
+			if($intPayloadLength > 65535){
+				
+				$arrPayloadLengthBin = str_split(sprintf('%064b', $intPayloadLength), 8);
+				$arrFrameHead[1] = ($blMasked === true) ? 255 : 127;
+				
 				for($i = 0; $i < 8; $i++){
-					$frameHead[$i + 2] = bindec($payloadLengthBin[$i]);
+					$arrFrameHead[$i + 2] = bindec($arrPayloadLengthBin[$i]);
 				}
-				// most significant bit MUST be 0 (close connection if frame too big)
-				if($frameHead[2] > 127){
+				
+				//Most significant bit MUST be 0 (close connection if frame too big)
+				if($arrFrameHead[2] > 127){
 					self::dataError($resUserSocket,"most significant bit MUST be 0 (close connection if frame too big). 1004");
 					return false;
 				}
-			} elseif($payloadLength > 125){
-				$payloadLengthBin = str_split(sprintf('%016b', $payloadLength), 8);
-				$frameHead[1] = ($masked === true) ? 254 : 126;
-				$frameHead[2] = bindec($payloadLengthBin[0]);
-				$frameHead[3] = bindec($payloadLengthBin[1]);
-			} else{
-				$frameHead[1] = ($masked === true) ? $payloadLength + 128 : $payloadLength;
+				
+			}elseif($intPayloadLength > 125){
+				
+				$arrPayloadLengthBin = str_split(sprintf('%016b', $intPayloadLength), 8);
+				$arrFrameHead[1] = ($blMasked === true) ? 254 : 126;
+				$arrFrameHead[2] = bindec($arrPayloadLengthBin[0]);
+				$arrFrameHead[3] = bindec($arrPayloadLengthBin[1]);
+			}else{
+				$arrFrameHead[1] = ($blMasked === true) ? $intPayloadLength + 128 : $intPayloadLength;
 			}
 
-			// convert frame-head to string:
-			foreach(array_keys($frameHead) as $i){
-				$frameHead[$i] = chr($frameHead[$i]);
+			//Convert frame-head to string:
+			foreach(array_keys($arrFrameHead) as $i){
+				$arrFrameHead[$i] = chr($arrFrameHead[$i]);
 			}
-			if($masked === true){
-				// generate a random mask:
-				$mask = array();
+			
+			if($blMasked === true){
+				
+				//Generate a random mask:
+				$arrMask = array();
 				for($i = 0; $i < 4; $i++){
-					$mask[$i] = chr(rand(0, 255));
+					$arrMask[$i] = chr(rand(0, 255));
 				}
 
-				$frameHead = array_merge($frameHead, $mask);
+				$arrFrameHead = array_merge($arrFrameHead, $arrMask);
 			}
-			$frame = implode('', $frameHead);
+			
+			$strFrame = implode('', $arrFrameHead);
 
-			// append payload to frame:
-			$framePayload = array();
-			for($i = 0; $i < $payloadLength; $i++){
-				$frame .= ($masked === true) ? $payload[$i] ^ $mask[$i % 4] : $payload[$i];
+			//Append payload to the frame
+			for($i = 0; $i < $intPayloadLength; $i++){
+				$strFrame .= ($blMasked === true) ? $strPayload[$i] ^ $arrMask[$i % 4] : $strPayload[$i];
 			}
 
-			return $frame;
+			return $strFrame;
 		}
 
-		private static function hybi10Decode($data,$resUserSocket = null){
+		/**
+		 * Decode hybi-10 encoded data from the WebSocket communication
+		 * @param string $strData The hybi-10 encoded data
+		 * @param null $resUserSocket Socket resource the hybi-10 encoded data was received from
+		 * @return array|bool Decoded hybi-10 payload and type
+		 */
+		private static function hybi10Decode($strData,$resUserSocket = null){
 
-			$payloadLength = '';
-			$mask = '';
-			$unmaskedPayload = '';
-			$decodedData = array();
+			$strUnmaskedPayload = '';
+			$arrDecodedData = array();
 
-			// estimate frame type:
-			$firstByteBinary = sprintf('%08b', ord($data[0]));
-			$secondByteBinary = sprintf('%08b', ord($data[1]));
-			$opcode = bindec(substr($firstByteBinary, 4, 4));
-			$isMasked = ($secondByteBinary[0] == '1') ? true : false;
-			$payloadLength = ord($data[1]) & 127;
+			//Estimate frame type:
+			$binFirstByte = sprintf('%08b', ord($strData[0]));
+			$binSecondByte = sprintf('%08b', ord($strData[1]));
+			$intOpcode = bindec(substr($binFirstByte, 4, 4));
+			$blMasked = ($binSecondByte[0] == '1') ? true : false;
+			$intPayloadLength = ord($strData[1]) & 127;
 
-			// close connection if unmasked frame is received:
-			if($isMasked === false){
+			//Close connection if unmasked frame is received:
+			if($blMasked === false){
 				self::dataError($resUserSocket,"close connection if unmasked frame is received. 1002");
 			}
 
-			switch($opcode){
-				// text frame:
+			switch($intOpcode){
 
 				case 0:
-					$decodedData['type'] = 'continuation';
+					//Text Frame
+					$arrDecodedData['type'] = 'continuation';
 					break;
 
 				case 1:
-					$decodedData['type'] = 'text';
+					//Text Frame
+					$arrDecodedData['type'] = 'text';
 					break;
 
 				case 2:
-					$decodedData['type'] = 'binary';
+					//Text Frame
+					$arrDecodedData['type'] = 'binary';
 					break;
 
-				// connection close frame:
 				case 8:
-					$decodedData['type'] = 'close';
+					//Connection Close Frame
+					$arrDecodedData['type'] = 'close';
 					break;
 
-				// ping frame:
 				case 9:
-					$decodedData['type'] = 'ping';
+					//Ping Frame
+					$arrDecodedData['type'] = 'ping';
 					break;
 
-				// pong frame:
 				case 10:
-					$decodedData['type'] = 'pong';
+					//Pong Frame
+					$arrDecodedData['type'] = 'pong';
 					break;
 
 				default:
-					self::dataError($resUserSocket,sprintf("Close connection on unknown opcode: %s. 1003",$opcode));
+					self::dataError($resUserSocket,sprintf("Close connection on unknown opcode: %s. 1003",$intOpcode));
 					break;
 			}
 
-			if($payloadLength === 126){
-				$mask = substr($data, 4, 4);
-				$payloadOffset = 8;
-				$dataLength = bindec(sprintf('%08b', ord($data[2])) . sprintf('%08b', ord($data[3]))) + $payloadOffset;
-			} elseif($payloadLength === 127){
-				$mask = substr($data, 10, 4);
-				$payloadOffset = 14;
-				$tmp = '';
-				for($i = 0; $i < 8; $i++){
-					$tmp .= sprintf('%08b', ord($data[$i + 2]));
+			if($intPayloadLength === 126){
+
+				$mxdMask = substr($strData, 4, 4);
+				$intPayloadOffset = 8;
+				$intDataLength = bindec(sprintf('%08b', ord($strData[2])) . sprintf('%08b', ord($strData[3]))) + $intPayloadOffset;
+
+			}elseif($intPayloadLength === 127){
+
+				$mxdMask = substr($strData, 10, 4);
+				$intPayloadOffset = 14;
+				$mxdTemp = '';
+
+				for($intCount = 0; $intCount < 8; $intCount++){
+					$mxdTemp .= sprintf('%08b', ord($strData[$intCount + 2]));
 				}
-				$dataLength = bindec($tmp) + $payloadOffset;
-				unset($tmp);
-			} else{
-				$mask = substr($data, 2, 4);
-				$payloadOffset = 6;
-				$dataLength = $payloadLength + $payloadOffset;
+
+				$intDataLength = bindec($mxdTemp) + $intPayloadOffset;
+				unset($mxdTemp);
+			}else{
+				$mxdMask = substr($strData, 2, 4);
+				$intPayloadOffset = 6;
+				$intDataLength = $intPayloadLength + $intPayloadOffset;
 			}
 
-			/**
-			 * We have to check for large frames here. socket_recv cuts at 1024 bytes
-			 * so if websocket-frame is > 1024 bytes we have to wait until whole
-			 * data is transferd.
-			 */
-			if(strlen($data) < $dataLength){
+			//If the frame is bigger than 1024bytes we will return false and wait for all the data to be transferred. (socket_recv cuts at 1024 bytes)
+			if(strlen($strData) < $intDataLength){
 				return false;
 			}
 
-			if($isMasked === true){
-				for($i = $payloadOffset; $i < $dataLength; $i++){
-					$j = $i - $payloadOffset;
-					if(isset($data[$i])){
-						$unmaskedPayload .= $data[$i] ^ $mask[$j % 4];
+			if($blMasked === true){
+
+				//Unmask the payload
+				for($intCount = $intPayloadOffset; $intCount < $intDataLength; $intCount++){
+					$intPosition = $intCount - $intPayloadOffset;
+
+					if(isset($strData[$intCount])){
+						$strUnmaskedPayload .= $strData[$intCount] ^ $mxdMask[$intPosition % 4];
 					}
 				}
-				$decodedData['payload'] = $unmaskedPayload;
-			} else{
-				$payloadOffset = $payloadOffset - 4;
-				$decodedData['payload'] = substr($data, $payloadOffset);
+
+				$arrDecodedData['payload'] = $strUnmaskedPayload;
+			}else{
+
+				$intPayloadOffset = $intPayloadOffset - 4;
+				$arrDecodedData['payload'] = substr($strData, $intPayloadOffset);
 			}
 
-			return $decodedData;
+			return $arrDecodedData;
 		}
 
+		/**
+		 * Disconnect procedure for the payloads that have failed to be encoded/decoded successfully
+		 * @param resource $resSocket Socket resource the is to be disconnected
+		 * @param string $strMessage Message to be send to the socket upon disconnection
+		 */
 		protected static function dataError($resSocket,$strMessage){
 
 			//Remove the socket from the list of connected sockets
@@ -232,7 +273,7 @@
 				Sockets::remove($resSocket);
 			}
 
-			// Close connection on unknown opcode
+			//Close connection on unknown opcode
 			System::log('Disconnected from server: '.$strMessage);
 		}
 	}
